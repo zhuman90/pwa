@@ -5,6 +5,7 @@
  */
 function main () {
   var $state = document.getElementById('notification-state')
+  console.dir(Notification)
   if (typeof Notification === 'undefined') {
     $state.innerText = '浏览器不支持 Notification API'
     $state.classList.add('disabled')
@@ -20,21 +21,27 @@ function main () {
     $state.innerText = 'Notification 可用'
     register()
   } else {
-    Notification.requestPermission().then(function (permission) {
-      switch (permission) {
-        case 'granted':
-          $state.innerText = 'Notification 可用'
-          register()
-          break
-        case 'denied':
-          $state.innerText = 'Notification 权限已被禁用'
-          break
-        default:
-          $state.innerText = 'Notification 权限尚未授权'
-      }
-    })
+    $state.innerText = '自动获取通知权限为' + Notification.permission
   }
 }
+
+function requestPermission () {
+  Notification.requestPermission().then(function (permission) {
+    console.dir(permission)
+    switch (permission) {
+      case 'granted':
+        alert('Notification 可用')
+        register()
+        break
+      case 'denied':
+        alert('Notification 权限已被禁用')
+        break
+      default:
+        alert('Notification 权限尚未授权')
+    }
+  })
+}
+document.getElementById('notification-request-permission').addEventListener('click',requestPermission)
 
 function register () {
   // 标题&内容
