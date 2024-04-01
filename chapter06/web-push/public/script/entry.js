@@ -2,7 +2,7 @@
  * @file entry.js
  * @description web push client
  */
-const VAPIDPublicKey = 'BC8Iccjh-zP7QQZWqjrVPiYtGCvruq3-wUfBqNlVaqPVHlEteiWUtFmGxcDKuWZssM4NldUx8yrvMScyw5cZcnU'
+const VAPIDPublicKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
 // 注册 service worker 并缓存 registration
 let registration
 function registerServiceWorker () {
@@ -19,13 +19,15 @@ function registerServiceWorker () {
 function requestNotificationPermission () {
   // 系统不支持桌面通知
   if (!window.Notification) {
-    return Promise.reject('系统不支持桌面通知')
+    console.dir('系统不支持桌面通知')
   }
   return Notification.requestPermission()
     .then(function (permission) {
+      console.log('Notification.requestPermission', permission)
       if (permission === 'granted') {
         return Promise.resolve()
       }
+
       return Promise.reject('用户已禁止桌面通知权限')
     })
 }
@@ -37,15 +39,18 @@ function subscribeAndDistribute (registration) {
   }
   // 检查是否已经订阅过
   return registration.pushManager.getSubscription().then(function (subscription) {
+    console.log('old subscription:', subscription)
     // 如果已经订阅过，就不重新订阅了
     if (subscription) {
       return
     }
+
     // 如果尚未订阅则发起推送订阅
     return registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: base64ToUint8Array(VAPIDPublicKey)
     }).then(function (subscription) {
+      console.log('new subscription:', subscription)
       // 订阅推送成功之后，将订阅信息传给后端服务器
       distributePushResource(subscription)
     })
@@ -89,13 +94,12 @@ function base64ToUint8Array (base64String) {
 registerServiceWorker()
   // 申请桌面通知权限
   .then(function () {
-    requestNotificationPermission()
+    document.getElementById('permission').addEventListener('click', async () => {
+      await requestNotificationPermission()
+      subscribeAndDistribute(registration)
+    })
   })
-  // 订阅推送
-  .then(function () {
-    subscribeAndDistribute(registration)
-  })
-  .catch(function (err) {
-    console.log(err)
-    alert(err)
-  })
+
+
+
+
